@@ -1,3 +1,5 @@
+// zcc +zx81 -create-app -o vertical.bin vertical.c
+
 #include <zx81.h>
 #include <string.h>
 #include <stdlib.h>
