@@ -81,10 +81,12 @@ void main() {
             intrinsic_halt();
         }
         *dfile = buffer1;
+        current_frame = *frames;
 
         while (current_frame == *frames) {
             intrinsic_halt();
         }
         *dfile = buffer2;
+        current_frame = *frames;
     }
 }
