@@ -46,49 +46,62 @@ unsigned char rbuffer[] = {
     BOTTOM
 };
 
-unsigned char **dfile = (unsigned char **) 0x400C;
-unsigned char *frames = (unsigned char *) 0x4034;
+// 0 <= x <= 19, 0 <= y <= 14
+#define PTR(buffer, x) (buffer + 15 + x) 
+#define SHIFT *px1 = W; *px2 = L; px1 += 33; px2 += 33
 
-// at 0,0 buffer offset for L is 37
-#define SHIFT *px = W; *pxx = L; px += 33; pxx += 33
-
-static void shift(unsigned char *buffer, char x, char xx) {
-    unsigned char *px = buffer + 15 + x, *pxx = buffer + 15 + xx;
+static void shift(unsigned char *buffer, char x1, char x2) {
+    unsigned char *px1 = PTR(buffer, x1), *px2 = PTR(buffer, x2);
     SHIFT; SHIFT; SHIFT; SHIFT; SHIFT; SHIFT; SHIFT; SHIFT; SHIFT;
 }
+
+unsigned char **dfile = (unsigned char **) 0x400C;
+unsigned char *frames = (unsigned char *) 0x4034;
 
 int main() {
     unsigned char *bfile = *dfile;
 
     unsigned char current_frame = *frames;
 
-    char x = 19, y = 14, dx = -1; // 0,0 is bottom right
+    unsigned char *buf0 = lbuffer, *buf1 = rbuffer;
+
+    char x_ = 39, dx_ = -1; // using sub-char x coords
+    char y = 14;
 
     for (;;) {
-        unsigned char *buffer = lbuffer;
+
+        unsigned char *buffer, *next;
+        if (x_ & 1) {
+            buffer = lbuffer, next = rbuffer;
+        } else {
+            buffer = rbuffer, next = lbuffer;
+        }
+
+        if (y < 0) y = 14;
 
         while (current_frame == *frames) {
             intrinsic_halt();
         }
         current_frame = *frames;
         *dfile = buffer + y;
-        shift(buffer, x, x + dx);
 
-        // finished display buffer changes
-        x += dx;
-
-        if (x == 0) {
-            dx = 1;
+        if (x_ == 2) {
+            dx_ = 1;
             y--;
-        } else if (x == 19) {
-            dx = -1;
+        } else if (x_ == 39) {
+            dx_ = -1;
             y--;
+        } else {
+            char col = (x_ + 1) / 2;
+            if (dx_ > 0) --col; 
+            shift(next, col, col + dx_);
         }
-        if (y < 0) y = 14;
+
+        x_ += dx_;
 
         if (in_Inkey()) {
             *dfile = bfile;
-            return buffer;
+            return buf0;
         }
     }
 }
