@@ -3,10 +3,18 @@ zcc +zx81 -create-app -o build/invader.bin "$0"
 exit
 #endif
 
+/*
+A zx81 demo that shows 4 space invaders moving smoothly back and forth across the screen,
+moving down 1 line when they reach the side of the screen.
+Techniques used:
+1. DFILE is flipped between 2 display files which correspond to odd and even invader x coords
+2. Vertical scrolling by prefixing display files with sequental newlines and setting DFILE to an appropriate offset
+3. Horizontal scrolling by modifying the position of newlines between subsequent lines of the invader sprites
+ */
+
 #include <zx81.h>
 #include <string.h>
 #include <stdlib.h>
-// #include <stdio.h>
 #include <input.h>
 #include <intrinsic.h>
 
@@ -18,6 +26,7 @@ exit
 #define BOTTOM L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L
 #define LEFT W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,L
 
+// display file with invaders left-aligned in character spaces
 unsigned char lbuffer[] = {
     TOP,
     LEFT,0x00,0x86,0x00,0x87,0x01,0x00,W,0x00,0x86,0x00,0x87,0x01,0x00,
@@ -32,6 +41,7 @@ unsigned char lbuffer[] = {
     BOTTOM
 };
 
+// display file with invaders right-aligned in character spaces
 unsigned char rbuffer[] = {
     TOP,
     LEFT,0x00,0x02,0x04,0x00,0x06,0x00,W,0x00,0x02,0x04,0x00,0x06,0x00,
@@ -60,10 +70,7 @@ unsigned char *frames = (unsigned char *) 0x4034;
 
 int main() {
     unsigned char *bfile = *dfile;
-
     unsigned char current_frame = *frames;
-
-    unsigned char *buf0 = lbuffer, *buf1 = rbuffer;
 
     char x_ = 39, dx_ = -1; // using sub-char x coords
     char y = 14;
@@ -85,7 +92,7 @@ int main() {
         current_frame = *frames;
         *dfile = buffer + y;
 
-        if (x_ == 2) {
+        if (x_ == 0) {
             dx_ = 1;
             y--;
         } else if (x_ == 39) {
@@ -101,7 +108,7 @@ int main() {
 
         if (in_Inkey()) {
             *dfile = bfile;
-            return buf0;
+            return buffer;
         }
     }
 }
