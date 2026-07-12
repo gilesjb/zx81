@@ -3,10 +3,15 @@ zcc +zx81 -create-app -o build/bouncy.bin "$0"
 exit
 #endif
 
+/*
+A zx81 demo which bounces 6-line high rendering of "ZX81" as black block characters.
+The text is displaced in the vertical dimension by inserting newlines into the beginning of the display file.
+Horizontal positioning of the text is achieved by moving the location of the newlines between lines.
+*/
+
 #include <zx81.h>
 #include <string.h>
 #include <stdlib.h>
-// #include <stdio.h>
 #include <input.h>
 #include <intrinsic.h>
 
