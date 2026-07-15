@@ -22,7 +22,7 @@ Techniques used:
 #define L 0x76
 #define G 0x08
 #define B 0x80
-#define TOP L,L,L,L,L,L,L,L,L,L,L,L,L,L,L
+#define TOP 19,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L
 #define BOTTOM L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L
 #define LEFT W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,W,L
 
@@ -57,12 +57,14 @@ unsigned char rbuffer[] = {
 };
 
 // 0 <= x <= 19, 0 <= y <= 14
-#define PTR(buffer, x) (buffer + 15 + x) 
+#define PTR(buffer, x) (buffer + 16 + x) 
 #define SHIFT *px1 = W; *px2 = L; px1 += 33; px2 += 33
 
-static void shift(unsigned char *buffer, char x1, char x2) {
+static void shift(unsigned char *buffer, char x2) {
+    char x1 = buffer[0];
     unsigned char *px1 = PTR(buffer, x1), *px2 = PTR(buffer, x2);
     SHIFT; SHIFT; SHIFT; SHIFT; SHIFT; SHIFT; SHIFT; SHIFT; SHIFT;
+    buffer[0] = x2;
 }
 
 unsigned char **dfile = (unsigned char **) 0x400C;
@@ -90,7 +92,7 @@ int main() {
             intrinsic_halt();
         }
         current_frame = *frames;
-        *dfile = buffer + y;
+        *dfile = buffer + y + 1; // add 1 for curr_x byte at beginning
 
         if (x_ == 0) {
             dx_ = 1;
@@ -99,9 +101,7 @@ int main() {
             dx_ = -1;
             y--;
         } else {
-            char col = (x_ + 1) / 2;
-            if (dx_ > 0) --col; 
-            shift(next, col, col + dx_);
+            shift(next, (x_ + dx_) / 2);
         }
 
         x_ += dx_;
