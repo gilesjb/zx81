@@ -101,6 +101,15 @@ static void shift(unsigned char *buffer, char x2) {
 unsigned char **dfile = (unsigned char **) 0x400C;
 unsigned char *frames = (unsigned char *) 0x4034;
 
+unsigned char flip(unsigned char *frame) {
+    unsigned char current_frame = *frames;
+    do {
+        intrinsic_halt();
+    } while (current_frame == *frames);
+    *dfile = frame;
+    return current_frame;
+}
+
 int main() {
     unsigned char *bfile = *dfile;
     unsigned char current_frame = *frames;
@@ -112,14 +121,10 @@ int main() {
     for (;;) {
         if (y < 0) y = 14;
 
-        while (current_frame == *frames) {
-            intrinsic_halt();
-        }
-        current_frame = *frames;
-        *dfile = dfiles[ibuf] + y + 1; // add 1 for curr_x byte at beginning
+        unsigned char frame = flip(dfiles[ibuf] + y + 1);
 
         ibuf ^= 1;
-        if ((current_frame & 0x0f) == 0) {
+        if ((frame & 0x03) == 0) {
             ibuf ^= 2;
         }
 
