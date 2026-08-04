@@ -124,7 +124,7 @@ int main() {
         unsigned char frame = flip(dfiles[ibuf] + y + 1);
 
         ibuf ^= 1;
-        if ((frame & 0x01) == 0) {
+        if ((frame & 0x07) == 0) {
             ibuf ^= 2;
         }
 
@@ -134,10 +134,9 @@ int main() {
         } else if (x_ == 39) {
             dx_ = -1;
             y--;
-        } else {
-            shift(dfiles[ibuf], (x_ + dx_) / 2);
         }
-
+        
+        shift(dfiles[ibuf], (x_ + dx_) / 2);
         x_ += dx_;
 
         if (in_Inkey()) {
