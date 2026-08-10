@@ -10,6 +10,8 @@ zcc +zx81 -create-app -o build/driver.bin "$0"; exit
 #include <intrinsic.h>
 
 #define W 0x00
+#define WW W,W
+#define WWW W,W,W
 #define L 0x76
 #define B 0x80
 
@@ -20,16 +22,16 @@ zcc +zx81 -create-app -o build/driver.bin "$0"; exit
 unsigned char buffer1[] = {
     L,L,L,L,L,L,L,L,L,L,
 
-    D,L,
-    U,L,
-    G,L,
+    WWW, WWW, WWW, WWW, WWW, D,L,
+    WWW, WWW, WWW, WWW, WWW, U,L,
+    WWW, WWW, WWW, WWW, G,L,
 
-    D,D,L,
-    U,U,L,
-    G,G,L,
+    WWW, WWW, WWW, D,D,L,
+    WWW, WWW, WWW, U,U,L,
+    WWW, WWW, G,G,L,
 
-    D,D,D,L,
-    U,U,U,L,
+    WWW, D,D,D,L,
+    WWW, U,U,U,L,
     G,G,G,L,
 
     L,L,L,L,L,L
@@ -38,20 +40,21 @@ unsigned char buffer1[] = {
 unsigned char buffer2[] = {
     L,L,L,L,L,L,L,L,L,L,
 
-    U,L,
-    G,L,
+    L,
+    // WW, WWW, WWW, WWW, WWW, WWW, U,L,
+    WW, WWW, WWW, WWW, WWW, G,L,
 
-    D,L,
-    U,L,
+    WW, WWW, WWW, WWW, D,L,
+    WW, WWW, WWW, WWW, U,L,
     
-    G,G,L,
+    WW, WWW, WWW, G,G,L,
+
+    WW, WWW, D,D,L,
+    WW, WWW, U,U,L,
+
+    WW, G,G,G,L,
 
     D,D,L,
-    U,U,L,
-
-    G,G,G,L,
-
-    D,D,D,L,
 
     L,L,L,L,L,L
 };
@@ -59,17 +62,20 @@ unsigned char buffer2[] = {
 unsigned char buffer3[] = {
     L,L,L,L,L,L,L,L,L,L,
 
-    G,L,
-    D,L,
-    U,L,
+    WWW, WWW, WWW, WWW, WWW, W, G,L,
 
-    G,G,L,
-    D,D,L,
-    U,U,L,
+    WWW, WWW, WWW, WWW, W, D,L,
+    WWW, WWW, WWW, WWW, W, U,L,
 
-    G,G,G,L,
-    D,D,D,L,
-    U,U,U,L,
+    WWW, WWW, WWW, W, G,G,L,
+
+    WWW, WWW, W, D,D,L,
+    WWW, WWW, W, U,U,L,
+
+    WWW, W, G,G,G,L,
+
+    W, D,D,D,L,
+    W, U,U,U,L,
 
     L,L,L,L,L,L
 };
@@ -78,7 +84,7 @@ unsigned char **dfile = (unsigned char **)0x400C;
 unsigned char *frames = (unsigned char *) 0x4034;
 
 void flip(unsigned char *frame) {
-    for (unsigned char i = 0; i < 10; i++) {
+    for (unsigned char i = 0; i < 3 ; i++) {
         unsigned char current_frame = *frames;
         do {
             intrinsic_halt();
