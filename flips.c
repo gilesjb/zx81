@@ -24,25 +24,24 @@ unsigned char buffer[] = {
     B,B,B,B,B,B,W,B,W,W,W,W,B,W,W,B,B,B,B,W,W,B,B,B,B,B,L,
     L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L,L
 };
-void main() {
-    unsigned char **dfile = (unsigned char **)0x400C;
 
-    unsigned char *frames = (unsigned char *) 0x4034;
+unsigned char **dfile = (unsigned char **)0x400C;
+unsigned char *frames = (unsigned char *) 0x4034;
+
+void flip(unsigned char *frame) {
     unsigned char current_frame = *frames;
+    do {
+        intrinsic_halt();
+    } while (current_frame == *frames);
+    *dfile = frame;
+}
+
+void main() {
 
     for (;;) {
-        for (unsigned int y = 1; y < 23; y++) {
-            while (current_frame == *frames) {
-                intrinsic_halt();
-            }
-            *dfile = buffer + y;
-            current_frame = *frames;
-    
-            while (current_frame == *frames) {
-                intrinsic_halt();
-            }
-            *dfile = buffer + 24 - y;
-            current_frame = *frames;
+        for (unsigned int y = 1; y < 46; y++) {
+            flip(buffer + (y >> 1));
+            flip(buffer + 24 - (y >> 1));
         }
     }
 }
