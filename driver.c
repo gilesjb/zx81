@@ -19,8 +19,8 @@ zcc +zx81 -create-app -o build/driver.bin "$0"; exit
 #define U 0x0a
 #define D 0x09
 
-#define CART D,0x26,D // top of car
-#define CARB B,U,B    // bottom of car
+#define DAD D,0x26,D // top of car
+#define BUB B,U,B    // bottom of car
 
 unsigned char buffer1[] = {
     TOP,
@@ -37,9 +37,9 @@ unsigned char buffer1[] = {
     WWW, WWW, G,G, WW, WWW, WWW, WWW, WWW, WW, G,G,L, //6
 
     WWW, D,D,D, WWW, WWW, WWW, WWW, WWW, WWW, WW, D,D,D,L, //3
-    WWW, U,U,U, WWW, WWW, WWW, CART, WWW, WWW, WW, U,U,U,L, //3
+    WWW, U,U,U, WWW, WWW, WWW, DAD, WWW, WWW, WW, U,U,U,L, //3
     
-    G,G,G, WWW,WWW,WWW,WWW,CARB,WWW,WWW,WWW, WW, G,G,G,L, //0
+    G,G,G, WWW,WWW,WWW,WWW,BUB,WWW,WWW,WWW, WW, G,G,G,L, //0
 
     L,L,L,L,L,L
 };
@@ -58,9 +58,9 @@ unsigned char buffer2[] = {
     WW, WWW, D,D, WWW, WWW, WWW, WWW, WWW, WWW, D,D,L, //5
     WW, WWW, U,U, WWW, WWW, WWW, WWW, WWW, WWW, U,U,L, //5
 
-    WW, G,G,G, W, WWW, WWW, WWW, CART, WWW, WWW, WWW, G,G,G,L, //2
+    WW, G,G,G, W, WWW, WWW, WWW, DAD, WWW, WWW, WWW, G,G,G,L, //2
 
-    D,D, W, WWW, WWW, WWW, WWW, CARB, WWW, WWW, WWW, WWW, D,D,L, //-1
+    D,D, W, WWW, WWW, WWW, WWW, BUB, WWW, WWW, WWW, WWW, D,D,L, //-1
 
     L,L,L,L,L,L
 };
@@ -79,11 +79,13 @@ unsigned char buffer3[] = {
 
     WWW, W, G,G,G, WWW,WWW,WWW,WWW,WWW,WWW, G,G,G,L, //4
 
-    W, D,D,D, WWW,WWW,WWW,WW,CART,W,WWW,WWW,WWW,D,D,D,L, //1
-    W, U,U,U, WWW,WWW,WWW,WW,CARB,W,WWW,WWW,WWW,U,U,U,L, //1
+    W, D,D,D, WWW,WWW,WWW,WW,DAD,W,WWW,WWW,WWW,D,D,D,L, //1
+    W, U,U,U, WWW,WWW,WWW,WW,BUB,W,WWW,WWW,WWW,U,U,U,L, //1
 
     L,L,L,L,L,L
 };
+
+unsigned char *buffers[] = {buffer1, buffer2, buffer3};
 
 unsigned char **dfile = (unsigned char **)0x400C;
 unsigned char *frames = (unsigned char *) 0x4034;
@@ -101,10 +103,8 @@ void flip(unsigned char *frame) {
 void main() {
 
     for (;;) {
-        for (unsigned int y = 1; y < 46; y++) {
-            flip(buffer1);
-            flip(buffer2);
-            flip(buffer3);
+        for (char i = 0; i < 3; i++) {
+            flip(buffers[i]);
         }
     }
 }
