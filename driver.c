@@ -8,6 +8,8 @@ zcc +zx81 -create-app -o build/driver.bin "$0"; exit
 #include <input.h>
 #include <intrinsic.h>
 
+#define uchar unsigned char
+
 #define _ X(0x00) // space
 #define L X(0x76) // newline
 #define B X(0x80) // black square
@@ -24,8 +26,8 @@ zcc +zx81 -create-app -o build/driver.bin "$0"; exit
     L _ _ _ _ _ _ _ _ _ U U _ _  _ _ _ _ _ _ _ _ U U \
     L _ _ _ _ _ _ G G _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ G G \
     L _ _ _ D D D _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ D D D \
-    L _ _ _ U U U _ _ _ _ _ _ _ _ D A D _ _ _ _ _ _ _ _ _ U U U \
-    L G G G _ _ _ _ _ _ _ _ _ _ _ B U B _ _ _ _ _ _ _ _ _ _ _ _ G G G
+    L _ _ _ U U U _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ U U U \
+    L G G G _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ G G G
 
 #define SCREEN2 \
     L \
@@ -35,8 +37,8 @@ zcc +zx81 -create-app -o build/driver.bin "$0"; exit
     L _ _ _ _ _ _ _ _ G G _ _ _ _ _ _ _ _ _ _ _ _ G G \
     L _ _ _ _ _ D D _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ D D \
     L _ _ _ _ _ U U _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ U U \
-    L _ _ G G G _ _ _ _ _ _ _ _ _ D A D _ _ _ _ _ _ _ _ _ _ G G G \
-    L D D _ _ _ _ _ _ _ _ _ _ _ _ B U B _ _ _ _ _ _ _ _ _ _ _ _ _ D D
+    L _ _ G G G _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ G G G \
+    L D D _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ D D
 
 #define SCREEN3 \
     L \
@@ -46,26 +48,39 @@ zcc +zx81 -create-app -o build/driver.bin "$0"; exit
     L _ _ _ _ _ _ _ D D _ _ _ _ _ _ _ _ _ _ _ _ _ _ D D \
     L _ _ _ _ _ _ _ U U _ _ _ _ _ _ _ _ _ _ _ _ _ _ U U \
     L _ _ _ _ G G G _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ G G G \
-    L _ D D D _ _ _ _ _ _ _ _ _ _ D A D _ _ _ _ _ _ _ _ _ _ _ D D D \
-    L _ U U U _ _ _ _ _ _ _ _ _ _ B U B _ _ _ _ _ _ _ _ _ _ _ U U U  
+    L _ D D D _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ D D D \
+    L _ U U U _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ U U U  
 
-#define TOP L L L L L L L L L L L L L L
-#define END L L L L L L L
+#define TOP L L L L L L L L L L L L L L L // Initial newline + 14 lines
+#define TAIL L
 
 #define X(c) c,
-unsigned char buffer1[] = { TOP SCREEN1 END 0x00 };
-unsigned char buffer2[] = { TOP SCREEN2 END 0x00 };
-unsigned char buffer3[] = { TOP SCREEN3 END 0x00 };
+uchar buffer1[] = { TOP SCREEN1 TAIL 0x00 };
+uchar buffer2[] = { TOP SCREEN2 TAIL 0x00 };
+uchar buffer3[] = { TOP SCREEN3 TAIL 0x00 };
+
 #undef X
+#define X(c) c
 
-unsigned char *buffers[] = {buffer1, buffer2, buffer3};
+uchar *buffers[] = {buffer1, buffer2, buffer3};
+uchar *lines[3][24];
 
-unsigned char **dfile = (unsigned char **)0x400C;
-unsigned char *frames = (unsigned char *) 0x4034;
+void init_offsets() {
+    for (uchar buf = 0; buf < 3; buf++) {
+        uchar *lchar = buffers[buf];
+        for (uchar line = 0; line < 24; line++) {
+            while (*lchar != L) lchar++;
+            lines[buf][line] = lchar++;
+        }
+    }
+}
 
-void flip(unsigned char *frame) {
-    for (unsigned char i = 0; i < 2 ; i++) {
-        unsigned char current_frame = *frames;
+uchar **dfile = (uchar **)0x400C;
+uchar *frames = (uchar *) 0x4034;
+
+void flip(uchar *frame) {
+    for (uchar i = 0; i < 2 ; i++) {
+        uchar current_frame = *frames;
         do {
             intrinsic_halt();
         } while (current_frame == *frames);
@@ -74,9 +89,17 @@ void flip(unsigned char *frame) {
 }
 
 void main() {
+    init_offsets();
+
+    uchar carx = 16;
 
     for (;;) {
         for (char i = 0; i < 3; i++) {
+            uchar *car = lines[i][22] + carx;
+            *car++ = D; *car++ = A; *car++ = D;
+            car = lines[i][23] + carx;
+            *car++ = B; *car++ = U; *car++ = B;
+
             flip(buffers[i]);
         }
     }
