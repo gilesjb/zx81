@@ -55,9 +55,9 @@ zcc +zx81 -create-app -o build/driver.bin "$0"; exit
 #define TAIL L
 
 #define X(c) c,
-uchar buffer1[] = { TOP SCREEN1 TAIL 0x00 };
-uchar buffer2[] = { TOP SCREEN2 TAIL 0x00 };
-uchar buffer3[] = { TOP SCREEN3 TAIL 0x00 };
+uchar buffer1[] = { TOP SCREEN1 TAIL 0xff };
+uchar buffer2[] = { TOP SCREEN2 TAIL 0xff };
+uchar buffer3[] = { TOP SCREEN3 TAIL 0xff };
 
 #undef X
 #define X(c) c
@@ -75,32 +75,51 @@ void init_offsets() {
     }
 }
 
-uchar **dfile = (uchar **)0x400C;
-uchar *frames = (uchar *) 0x4034;
+uchar **DFILE = (uchar **)0x400C;
+uchar *FRAME = (uchar *) 0x4034;
 
 void flip(uchar *frame) {
     for (uchar i = 0; i < 2 ; i++) {
-        uchar current_frame = *frames;
+        uchar current_frame = *FRAME;
         do {
             intrinsic_halt();
-        } while (current_frame == *frames);
+        } while (current_frame == *FRAME);
     }
-    *dfile = frame;
+    *DFILE = frame;
 }
 
 void main() {
     init_offsets();
 
+    unsigned int left_key = in_LookupKey('Q');
+    unsigned int right_key = in_LookupKey('W');
     uchar carx = 16;
+    char lasti = 2;
 
     for (;;) {
+
         for (char i = 0; i < 3; i++) {
+            uchar lastx = carx;
+            if (in_KeyPressed(left_key) && carx > 8) {
+                --carx;
+            }
+            if (in_KeyPressed(right_key) && carx < 23) {
+                ++carx;
+            }
+    
             uchar *car = lines[i][22] + carx;
             *car++ = D; *car++ = A; *car++ = D;
             car = lines[i][23] + carx;
             *car++ = B; *car++ = U; *car++ = B;
 
             flip(buffers[i]);
+
+            car = lines[lasti][22] + lastx;
+            *car++ = _; *car++ = _; *car++ = _;
+            car = lines[lasti][23] + lastx;
+            *car++ = _; *car++ = _; *car++ = _;
+
+            lasti = i;
         }
     }
 }
