@@ -18,51 +18,51 @@ zcc +zx81 -create-app -o build/driver.bin "$0"; exit
 #define D X(0x09) // bottom half grey
 #define A X(0x26) // 'A'
 
-#define SCREEN1 \
-    L _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ D D \
-    L _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ U U \
-    L _ _ _ _ _ _ _ _ _ _ _ _ G _ _ _ _ _ _ G \
-    L _ _ _ _ _ _ _ _ _ D D _ _ _ _ _ _ _ _ _ _ D D \
-    L _ _ _ _ _ _ _ _ _ U U _ _  _ _ _ _ _ _ _ _ U U \
-    L _ _ _ _ _ _ G G _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ G G \
-    L _ _ _ D D D _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ D D D \
-    L _ _ _ U U U _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ U U U \
+#define SCREEN0 \
+    L _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ D D \
+    L _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ U U \
+    L _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ G _ _ _ _ _ _ G \
+    L _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ D D _ _ _ _ _ _ _ _ _ _ D D \
+    L _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ U U _ _ _ _ _ _ _ _ _ _ U U \
+    L _ _ _ _ _ _ _ _ _ _ _ _ G G _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ G G \
+    L _ _ _ _ _ _ D D D _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ D D D \
+    L _ _ _ _ _ _ U U U _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ U U U \
     L G G G _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ G G G
+
+#define SCREEN1 \
+    L \
+    L _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ G _ _ G \
+    L _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ D _ _ _ _ _ _ _ _ D \
+    L _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ U _ _ _ _ _ _ _ _ U \
+    L _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ G G _ _ _ _ _ _ _ _ _ _ _ _ G G \
+    L _ _ _ _ _ _ _ _ _ _ D D _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ D D \
+    L _ _ _ _ _ _ _ _ _ _ U U _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ U U \
+    L _ _ _ _ G G G _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ G G G \
+    L _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
 
 #define SCREEN2 \
     L \
-    L _ _ _ _ _ _ _ _ _ _ _ _ _ _ G _ _ G \
-    L _ _ _ _ _ _ _ _ _ _ _ D _ _ _ _ _ _ _ _ D \
-    L _ _ _ _ _ _ _ _ _ _ _ U _ _ _ _ _ _ _ _ U \
-    L _ _ _ _ _ _ _ _ G G _ _ _ _ _ _ _ _ _ _ _ _ G G \
-    L _ _ _ _ _ D D _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ D D \
-    L _ _ _ _ _ U U _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ U U \
-    L _ _ G G G _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ G G G \
-    L D D _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ D D
-
-#define SCREEN3 \
-    L \
-    L _ _ _ _ _ _ _ _ _ _ _ _ _ D _ _ _ _ D \
-    L _ _ _ _ _ _ _ _ _ _ _ _ _ U _ _ _ _ U \
-    L _ _ _ _ _ _ _ _ _ _ G G _ _ _ _ _ _ _ _ G G \
-    L _ _ _ _ _ _ _ D D _ _ _ _ _ _ _ _ _ _ _ _ _ _ D D \
-    L _ _ _ _ _ _ _ U U _ _ _ _ _ _ _ _ _ _ _ _ _ _ U U \
-    L _ _ _ _ G G G _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ G G G \
-    L _ D D D _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ D D D \
-    L _ U U U _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ U U U  
+    L _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ D _ _ _ _ D \
+    L _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ U _ _ _ _ U \
+    L _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ G G _ _ _ _ _ _ _ _ G G \
+    L _ _ _ _ _ _ _ _ _ _ _ _ _ _ D D _ _ _ _ _ _ _ _ _ _ _ _ _ _ D D \
+    L _ _ _ _ _ _ _ _ _ _ _ _ _ _ U U _ _ _ _ _ _ _ _ _ _ _ _ _ _ U U \
+    L _ _ _ _ _ _ _ _ G G G _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ G G G \
+    L _ _ D D D _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ D D D \
+    L _ _ U U U _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ U U U 
 
 #define TOP L L L L L L L L L L L L L L L // Initial newline + 14 lines
 #define TAIL L
 
 #define X(c) c,
+uchar buffer0[] = { TOP SCREEN0 TAIL 0xff };
 uchar buffer1[] = { TOP SCREEN1 TAIL 0xff };
 uchar buffer2[] = { TOP SCREEN2 TAIL 0xff };
-uchar buffer3[] = { TOP SCREEN3 TAIL 0xff };
 
 #undef X
 #define X(c) c
 
-uchar *buffers[] = {buffer1, buffer2, buffer3};
+uchar *buffers[] = {buffer0, buffer1, buffer2};
 uchar *lines[3][24];
 
 void init_offsets() {
