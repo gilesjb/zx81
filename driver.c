@@ -78,13 +78,11 @@ void init_offsets() {
 uchar **DFILE = (uchar **)0x400C;
 uchar *FRAME = (uchar *) 0x4034;
 
-void flip(uchar *frame) {
-    for (uchar i = 0; i < 2 ; i++) {
-        uchar current_frame = *FRAME;
-        do {
-            intrinsic_halt();
-        } while (current_frame == *FRAME);
-    }
+void flip(uchar *frame, uchar skip) {
+    uchar next = *FRAME - skip;
+    do {
+        intrinsic_halt();
+    } while (*FRAME != next);
     *DFILE = frame;
 }
 
@@ -112,7 +110,7 @@ void main() {
             car = lines[i][23] + carx;
             *car++ = B; *car++ = U; *car++ = B;
 
-            flip(buffers[i]);
+            flip(buffers[i], 2);
 
             car = lines[lasti][22] + lastx;
             *car++ = _; *car++ = _; *car++ = _;
