@@ -66,18 +66,10 @@ uchar buffer2[] = { TOP SCREEN2 TAIL };
 #undef X
 #define X(c) c
 
-uchar *buffers[] = {buffer0, buffer1, buffer2};
-uchar *lines[3][24];
+#define FP 6 // number of fixed point bits
 
-// void init_offsets() {
-//     for (uchar buf = 0; buf < 3; buf++) {
-//         uchar *lchar = buffers[buf];
-//         for (uchar line = 0; line < 24; line++) {
-//             while (*lchar != L) lchar++;
-//             lines[buf][line] = lchar++;
-//         }
-//     }
-// }
+uchar *buffers[] = {buffer0, buffer1, buffer2};
+int slopes[] = {0, 0, 0};
 
 #define LAST_LINE(buf) (buf + 15 + 8 * 33)
 
@@ -100,22 +92,23 @@ void main() {
     uchar carx = 16;
     // char lasti = 2;
 
-    char slope = 5; // 3 times the slope between side markers
+    int slope = 3 << 6;
 
     for (;;) {
 
         for (char i = 0; i < 3; i++) {
+
             uchar *op = LAST_LINE(buffers[i]);
-            char off = slope * (1 - i);
+            int off = slope * (1 - i) / 3;
 
             for (int y = 0; y < 9; y++) {
-                if (off > 0) {
+                if (off >= 0) {
                     *op = _; //0x1c + off;
-                    *(op + off / 3) = L;
+                    *(op + (off >> 6)) = L;
                 }
                 uchar z = *(op - 1);
                 if (z == U || z == G) {
-                    off += slope * 3;
+                    off += slope;
                 }
                 op -= 33;
             }
