@@ -10,8 +10,8 @@ zcc +zx81 -create-app -o build/driver.bin "$0"; exit
 
 #define uchar unsigned char
 
-// #define _ X(0x00) // space
-#define _ X(0x16) // minus
+#define _ X(0x00) // space
+// #define _ X(0x16) // minus
 #define L X(0x76) // newline
 #define B X(0x80) // black square
 #define G X(0x08) // grey square
@@ -69,7 +69,19 @@ uchar buffer2[] = { TOP SCREEN2 TAIL };
 #define FP 6 // number of fixed point bits
 
 uchar *buffers[] = {buffer0, buffer1, buffer2};
-int slopes[] = {0, 0, 0};
+
+// offsets of screen buffer lines into slope array
+uchar offsets[][9] = {
+    {13, 13, 13, 10, 7, 7, 4, 1, 1},
+    {15, 15, 12,  9, 9, 6, 3, 3, 0},
+    {14, 14, 11, 11, 8, 5, 5, 2, 0}
+};
+
+uchar slope_left[] = {0, 2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30};
+uchar slope_center[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
+uchar slope_right[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+
+uchar *slopes[] = {slope_center, slope_center, slope_center};
 
 #define LAST_LINE(buf) (buf + 15 + 8 * 33)
 
@@ -85,55 +97,37 @@ void flip(uchar *frame, uchar skip) {
 }
 
 void main() {
-    // init_offsets();
+    unsigned int left_key = in_LookupKey('O');
+    unsigned int right_key = in_LookupKey('P');
 
-    unsigned int left_key = in_LookupKey('Q');
-    unsigned int right_key = in_LookupKey('W');
-    uchar carx = 16;
-    // char lasti = 2;
-
-    int slope = 3 << 6;
+    uchar *slope = slope_left;
 
     for (;;) {
 
-        for (char i = 0; i < 3; i++) {
+        for (uchar i = 0; i < 3; i++) {
 
-            uchar *op = LAST_LINE(buffers[i]);
-            int off = slope * (1 - i) / 3;
+            uchar *op = buffers[i] + 15;
+            uchar *offset = offsets[i];
 
-            for (int y = 0; y < 9; y++) {
-                if (off >= 0) {
-                    *op = _; //0x1c + off;
-                    *(op + (off >> 6)) = L;
-                }
-                uchar z = *(op - 1);
-                if (z == U || z == G) {
-                    off += slope;
-                }
-                op -= 33;
+            for (int l = 0; l < 9; l++) {
+                *op = _;
+                uchar off = *offset++;
+                *(op + slopes[i][off]) = _;
+                *(op + slope[off]) = L;
+                op += 33;
             }
+            slopes[i] = slope;
 
-            // uchar lastx = carx;
-            // if (in_KeyPressed(left_key) && carx > 8) {
-            //     --carx;
-            // }
-            // if (in_KeyPressed(right_key) && carx < 23) {
-            //     ++carx;
-            // }
+            if (in_KeyPressed(left_key)) {
+                slope = slope_right;
+            } else if (in_KeyPressed(right_key)) {
+                slope = slope_left;
+            } else {
+                slope = slope_center;
+            }
     
-            // uchar *car = lines[i][22] + carx;
-            // *car++ = D; *car++ = A; *car++ = D;
-            // car = lines[i][23] + carx;
-            // *car++ = B; *car++ = U; *car++ = B;
-
             flip(buffers[i], 2);
-
-            // car = lines[lasti][22] + lastx;
-            // *car++ = _; *car++ = _; *car++ = _;
-            // car = lines[lasti][23] + lastx;
-            // *car++ = _; *car++ = _; *car++ = _;
-
-            // lasti = i;
+            
         }
     }
 }
