@@ -1,0 +1,38 @@
+#!/usr/bin/env java --source 17
+
+public class DriverUtils {
+
+    static int[][] steps = {
+        {0, 1, 1, 0, 1, 1, 0, 0, 0},
+        {1, 0, 1, 1, 0, 1, 1, 0, 0},
+        {1, 1, 0, 1, 1, 0, 1, 0, 0}
+    };
+
+    static void plot(int slope) {
+        int[][] indices = new int[9][3];
+
+        for (int i = 0; i < 3; i++) {
+            int off = slope * (1 - i) / 3;
+
+            for (int y = 0; y < 9; y++) {
+                // System.out.println(off >> 6);
+                indices[8 - y][i] = Math.max(0, off >> 6);
+                off += steps[i][y] * slope;
+            }
+        }
+
+        // System.out.println(java.util.Arrays.deepToString(indices));
+        System.out.println("Slope: " + (slope >> 6));
+        for (int[] row : indices) {
+            System.out.println(java.util.Arrays.toString(row));
+        }
+    }
+
+    public static void main(String... args) {
+        plot(1 << 6);
+        plot(3 << 6);
+        plot(4 << 6);
+        plot(5 << 6);
+        plot(6 << 6);
+    }
+}
