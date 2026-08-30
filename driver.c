@@ -84,7 +84,7 @@ uchar straight_center[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15}
 uchar straight_right1[] = {0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8};
 uchar straight_right[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 
-uchar curve_left[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 22, 30};
+uchar curve_left[] = {0, 1, 2, 3, 4, 5, 6, 7, 9, 11, 13, 15, 18, 20, 22, 25};
 uchar curve_right[] = {0, 1, 2, 3, 4, 5, 6, 6, 7, 7, 7, 7, 6, 6, 6, 5};
 
 uchar *curves[] = {straight_left, straight_left1, straight_center, straight_right1, straight_right, curve_left, curve_right};
