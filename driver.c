@@ -86,7 +86,7 @@ uchar straight_right[] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 uchar curve_left[] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 22, 30};
 uchar curve_right[] = {0, 1, 2, 3, 4, 5, 6, 7, 7, 7, 7, 7, 7, 7, 7, 7};
 
-uchar *curves[] = {straight_left, straight_left1, straight_center, straight_right1, straight_right, curve_left, curve_right};
+uchar *curves[] = {straight_left, straight_left1, straight_right1, straight_right, curve_left, curve_right};
 
 // current slopes being used by the screens
 uchar *slopes[] = {straight_center, straight_center, straight_center};
