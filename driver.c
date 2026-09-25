@@ -18,6 +18,7 @@ zcc +zx81 -create-app -o build/driver.bin "$0"; exit
 #define U X(0x0a) // upper half grey
 #define D X(0x09) // bottom half grey
 #define A X(0x26) // 'A'
+#define LETTER(c) X(0x26 + (c - 'A'))
 
 #define SCREEN0 \
     L _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \
@@ -29,7 +30,6 @@ zcc +zx81 -create-app -o build/driver.bin "$0"; exit
     L _ _ _ _ _ _ _ _ G G G _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ G G G \
     L _ _ D D D _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ D D D \
     L _ _ U U U _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ U U U
-// effective row 1/3
 
 #define SCREEN1 \
     L _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ D \
@@ -41,7 +41,6 @@ zcc +zx81 -create-app -o build/driver.bin "$0"; exit
     L _ _ _ _ _ _ D D D _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ D D D \
     L _ _ _ _ _ _ U U U _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ U U U \
     L G G G _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ G G G
-// effective row 0/3
 
 #define SCREEN2 \
     L _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \
@@ -53,7 +52,6 @@ zcc +zx81 -create-app -o build/driver.bin "$0"; exit
     L _ _ _ _ _ _ _ _ _ _ U U _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ U U \
     L _ _ _ _ G G G _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ G G G \
     L _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
-// effective row -1/3
 
 #define TOP L L L L L L L L L L L L L L L // Initial newline + 14 lines
 #define TAIL 0x76
@@ -109,6 +107,7 @@ void flip(uchar *frame, uchar skip) {
 void main() {
     unsigned int left_key = in_LookupKey('O');
     unsigned int right_key = in_LookupKey('P');
+    uchar delay = 4;
 
     uchar carx = carxs[0];
 
@@ -137,7 +136,7 @@ void main() {
             *(p_) = _;
             p_ += carxs[i]; *p_++ = _; *p_++ = _; *p_++ = _;
             *(pl) = L;
-            pl += carx; *pl++ = D; *pl++ = A; *pl++ = D;
+            pl += carx; *pl++ = D; *pl++ = LETTER('A'); *pl++ = D;
             op += 32;
 
             off = *offset++;
@@ -153,7 +152,7 @@ void main() {
             slopes[i] = slope;
             carxs[i] = carx;
 
-            flip(buffers[i], 2);
+            flip(buffers[i], delay);
             
             unsigned int key = in_Inkey();
             if (key == 'O') {
@@ -162,6 +161,10 @@ void main() {
                 ++carx;
             } else if ('1' <= key && key < '1' + sizeof(curves)) {
                 slope = curves[key - '1'];
+            } else if (key == 'Q' && delay > 1) {
+                --delay;
+            } else if (key == 'A') {
+                ++delay;
             }
         }
     }
