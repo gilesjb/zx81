@@ -28,8 +28,8 @@ zcc +zx81 -create-app -o build/driver.bin "$0"; exit
     L _ _ _ _ _ _ _ _ _ _ _ _ _ _ D D _ _ _ _ _ _ _ _ _ _ _ _ _ D D \
     L _ _ _ _ _ _ _ _ _ _ _ _ _ _ U U _ _ _ _ _ _ _ _ _ _ _ _ _ U U \
     L _ _ _ _ _ _ _ _ G G G _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ G G G \
-    L _ _ D D D _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ D D D \
-    L _ _ U U U _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ U U U
+    L _ _ D D D _ _ _ _ _ _ _ _ _ _ _ _ _ _ D A D _ _ _ _ _ _ D D D \
+    L _ _ U U U _ _ _ _ _ _ _ _ _ _ _ _ _ _ B U B _ _ _ _ _ _ U U U
 
 #define SCREEN1 \
     L _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ D \
@@ -39,8 +39,8 @@ zcc +zx81 -create-app -o build/driver.bin "$0"; exit
     L _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ U U _ _ _ _ _ _ _ _ _ U U \
     L _ _ _ _ _ _ _ _ _ _ _ _ G G _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ G G \
     L _ _ _ _ _ _ D D D _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ D D D \
-    L _ _ _ _ _ _ U U U _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ U U U \
-    L G G G _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ G G G
+    L _ _ _ _ _ _ U U U _ _ _ _ _ _ _ _ _ _ D A D _ _ _ _ _ _ U U U \
+    L G G G _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ B U B _ _ _ _ _ _ G G G
 
 #define SCREEN2 \
     L _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ \
@@ -50,8 +50,8 @@ zcc +zx81 -create-app -o build/driver.bin "$0"; exit
     L _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ G G _ _ _ _ _ _ _ _ _ _ _ G G \
     L _ _ _ _ _ _ _ _ _ _ D D _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ D D \
     L _ _ _ _ _ _ _ _ _ _ U U _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ U U \
-    L _ _ _ _ G G G _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ G G G \
-    L _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+    L _ _ _ _ G G G _ _ _ _ _ _ _ _ _ _ _ _ D A D _ _ _ _ _ _ G G G \
+    L _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ B U B _ _ _ _ _ _ _ _ _
 
 #define TOP L L L L L L L L L L L L L L L // Initial newline + 14 lines
 #define TAIL 0x76
@@ -89,7 +89,7 @@ uchar *curves[] = {straight_left, straight_left1, straight_center, straight_righ
 
 // current slopes being used by the screens
 uchar *slopes[] = {straight_right, straight_right, straight_right};
-uchar carxs[] = {14, 14, 14};
+uchar carxs[] = {20, 20, 20};
 
 #define LAST_LINE(buf) (buf + 15 + 8 * 33)
 
@@ -107,11 +107,11 @@ void flip(uchar *frame, uchar skip) {
 void main() {
     unsigned int left_key = in_LookupKey('O');
     unsigned int right_key = in_LookupKey('P');
-    uchar delay = 4;
+    uchar delay = 2;
 
     uchar carx = carxs[0];
 
-    uchar *slope = straight_left;
+    uchar *slope = straight_right;
 
     for (;;) {
 
@@ -134,9 +134,9 @@ void main() {
             pl = op + slope[off];
 
             *(p_) = _;
-            p_ += carxs[i]; *p_++ = _; *p_++ = _; *p_++ = _;
+            p_ += carxs[i]; *p_++ ^= D; *p_++ ^= A; *p_++ ^= D;
             *(pl) = L;
-            pl += carx; *pl++ = D; *pl++ = LETTER('A'); *pl++ = D;
+            pl += carx; *pl++ ^= D; *pl++ ^= A; *pl++ ^= D;
             op += 32;
 
             off = *offset++;
@@ -144,9 +144,9 @@ void main() {
             pl = op + slope[off];
 
             *(p_) = _;
-            p_ += carxs[i]; *p_++ = _; *p_++ = _; *p_++ = _;
+            p_ += carxs[i]; *p_++ ^= B; *p_++ ^= U; *p_++ ^= B;
             *(pl) = L;
-            pl += carx; *pl++ = B; *pl++ = U; *pl++ = B;
+            pl += carx; *pl++ ^= B; *pl++ ^= U; *pl++ ^= B;
 
             // update the buffer records
             slopes[i] = slope;
