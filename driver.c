@@ -121,32 +121,21 @@ void main() {
             uchar *offset = offsets[i];
             uchar off, *p_, *pl;
 
-            for (int l = 0; l < 7; l++) {
+            for (int l = 0; l < 9; l++) {
                 off = *offset++;
                 p_ = op + slopes[i][off];
                 pl = op + slope[off];
                 *(p_) = _;
                 *(pl) = L;
+                if (l == 7) {
+                    p_ += carxs[i]; *p_++ ^= D; *p_++ ^= A; *p_++ ^= D;
+                    pl += carx; *pl++ ^= D; *pl++ ^= A; *pl++ ^= D;
+                } else if (l == 8) {
+                    p_ += carxs[i]; *p_++ ^= B; *p_++ ^= U; *p_++ ^= B;
+                    pl += carx; *pl++ ^= B; *pl++ ^= U; *pl++ ^= B;
+                }
                 op += 32;
             }
-            off = *offset++;
-            p_ = op + slopes[i][off];
-            pl = op + slope[off];
-
-            *(p_) = _;
-            p_ += carxs[i]; *p_++ ^= D; *p_++ ^= A; *p_++ ^= D;
-            *(pl) = L;
-            pl += carx; *pl++ ^= D; *pl++ ^= A; *pl++ ^= D;
-            op += 32;
-
-            off = *offset++;
-            p_ = op + slopes[i][off];
-            pl = op + slope[off];
-
-            *(p_) = _;
-            p_ += carxs[i]; *p_++ ^= B; *p_++ ^= U; *p_++ ^= B;
-            *(pl) = L;
-            pl += carx; *pl++ ^= B; *pl++ ^= U; *pl++ ^= B;
 
             // update the buffer records
             slopes[i] = slope;
