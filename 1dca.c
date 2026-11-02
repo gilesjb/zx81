@@ -10,82 +10,110 @@ zcc +zx81 -create-app -o build/1dca.bin "$0"; exit
 
 #define WIDTH 32
 #define HEIGHT 24
+#define INTERNAL_WIDTH 34 
 
-// State buffers for cellular tracking
-unsigned char buffer1[WIDTH];
-unsigned char buffer2[WIDTH];
+unsigned char buffer1[INTERNAL_WIDTH];
+unsigned char buffer2[INTERNAL_WIDTH];
 
 unsigned char *src = buffer1;
 unsigned char *dst = buffer2;
 
-// Rule mapping: Neighborhood sums range from 0 to 6
-const unsigned char rule[] = 
-    // {0, 2, 1, 0, 2, 0, 2}; // Wolfram 1599 rule
-    {0, 2, 0, 1, 1, 1, 2}; // Wolfram 1815 rule
-    // {0, 0, 1, 2, 0, 2, 2}; // Wolfram 2007 rule
+// The largest possible index is (0x80 + 0x80 + 0x80) >> 3 = 48
+unsigned char rule_table[49];
 
-// Map cell states directly to raw native ZX81 hardware character matrix
-const unsigned char char_map[] = {0x00, 0x08, 0x80};
+void setup_rule_table() {
+    int left, mid, right;
+    int state_l, state_m, state_r, state_sum;
+    unsigned int char_sum;
+    
+    // The master Wolfram 1599 array based on the 0, 1, 2 state counts:
+    // Index:        0     1     2     3     4     5     6
+    // Next State:   0     2     1     0     2     0     2
+    // Char Code:  0x00  0x80  0x08  0x00  0x80  0x00  0x80
+    const unsigned char state_to_char[] = {0x00, 0x80, 0x08, 0x00, 0x80, 0x00, 0x80};
+    const unsigned char choices[] = {0x00, 0x08, 0x80};
+
+    memset(rule_table, 0x00, sizeof(rule_table));
+
+    // Exhaustively iterate through all 27 possible neighborhood combinations
+    for (left = 0; left < 3; left++) {
+        for (mid = 0; mid < 3; mid++) {
+            for (right = 0; right < 3; right++) {
+                
+                // 1. Calculate what the original state sum (0, 1, 2) would be
+                state_l = (choices[left]  == 0x00) ? 0 : ((choices[left]  == 0x08) ? 1 : 2);
+                state_m = (choices[mid]   == 0x00) ? 0 : ((choices[mid]   == 0x08) ? 1 : 2);
+                state_r = (choices[right] == 0x00) ? 0 : ((choices[right] == 0x08) ? 1 : 2);
+                
+                state_sum = state_l + state_m + state_r;
+
+                // 2. Sum up the actual raw character codes
+                char_sum = (unsigned int)choices[left] + choices[mid] + choices[right];
+
+                // 3. Store the correct target character token in our compressed array hash slot
+                rule_table[char_sum >> 3] = state_to_char[state_sum];
+            }
+        }
+    }
+}
 
 void init_automata() {
     int i;
-    for (i = 0; i < WIDTH; i++) {
-        src[i] = rand() % 3;
+    unsigned char choices[] = {0x00, 0x08, 0x80};
+    for (i = 1; i <= WIDTH; i++) {
+        src[i] = choices[rand() % 3];
     }
 }
 
 int main() {
     int x;
-    unsigned int sum;
     unsigned char *tmp;
     unsigned char *screen_row;
     int current_line = 0;
 
+    zx_slow();
+    printf("\014"); 
+    
+    setup_rule_table();
     init_automata();
 
-    // Fetch the hardware D_FILE pointer location from z88dk system variables
-    // d_file points to the initial HALT instruction (0x76) at the start of VRAM.
     unsigned char *dfile_base = *(unsigned char **)0x400C; 
 
-    // Infinite loop for continuous rendering
     while (1) {
         if (in_Inkey() == ' ') {
             break; 
         }
-        // Calculate the absolute memory address of the target row
-        // Skip the initial 0x76 byte (+1). Each row has 32 chars + 1 newline byte (33 bytes total).
+
+        // Edge wrapping using raw hardware bytes
+        src[0] = src[WIDTH];
+        src[WIDTH + 1] = src[1];
+
+        // Locate VRAM line target
         screen_row = dfile_base + 1 + (current_line * 33);
 
-        // 1. Blast raw hardware character bytes directly into screen memory row
+        unsigned char *p_left  = &src[0];
+        unsigned char *p_mid   = &src[1];
+        unsigned char *p_right = &src[2];
+        unsigned char *p_dst   = &dst[1];
+
         for (x = 0; x < WIDTH; x++) {
-            screen_row[x] = char_map[src[x]];
+            // Blast character straight to memory
+            *screen_row++ = *p_mid;
+
+            // Mathematical update lookup via direct bit shifted sums
+            unsigned int char_sum = (unsigned int)*p_left++ + *p_mid++ + *p_right++;
+            *p_dst++ = rule_table[char_sum >> 3];
         }
 
-        // 2. Loop calculations across the 32 column neighborhood layout
-        for (x = 0; x < WIDTH; x++) {
-            int left  = (x == 0) ? src[WIDTH - 1] : src[x - 1];
-            int mid   = src[x];
-            int right = (x == WIDTH - 1) ? src[0] : src[x + 1];
+        // Swap execution generation buffers
+        tmp = src; src = dst; dst = tmp;
 
-            sum = left + mid + right;
-            dst[x] = rule[sum];
-        }
-
-        // 3. Low-overhead pointer swap to progress to the next iteration safely
-        tmp = src;
-        src = dst;
-        dst = tmp;
-
-        // 4. Handle vertical screen wrapping tracking
         current_line++;
         if (current_line >= HEIGHT) {
             current_line = 0; 
         }
-        
-        // Optional frame brake pacing mechanism: 
-        // If it renders too fast, uncomment the next line to yield slightly to the ULA rasterizer:
-        // delay(10); 
     }
 
+    printf("\014");
     return 0;
 }
