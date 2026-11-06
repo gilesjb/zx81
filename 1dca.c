@@ -16,20 +16,20 @@ zcc +zx81 -create-app -o build/1dca.bin "$0"; exit
 // Double-sized hardware display matrix (48 lines total)
 // Structure: 1 initial HALT + (48 lines * 33 bytes per line)
 #define BUFFER_LINES 48
-unsigned char big_dfile[1 + ((BUFFER_LINES + 2) * ROW_BYTES)];
+uchar big_dfile[1 + ((BUFFER_LINES + 2) * ROW_BYTES)];
 
 // State buffers for cellular tracking
-unsigned char buffer1[WIDTH];
-unsigned char buffer2[WIDTH];
-unsigned char *src = buffer1;
-unsigned char *dst = buffer2;
+uchar buffer1[WIDTH];
+uchar buffer2[WIDTH];
+uchar *src = buffer1;
+uchar *dst = buffer2;
 
-const unsigned char rule[] = 
+const uchar rule[] = 
     // {0, 2, 0, 2, 1, 0, 2}; // Wolfram 1599 rule
     // {0, 2, 0, 1, 1, 1, 2}; // Wolfram 1815 rule
     {0, 0, 1, 2, 0, 2, 2}; // Wolfram 2007 rule
 
-const unsigned char char_map[] = 
+const uchar char_map[] = 
     {0x00, 0x08, 0x80};
     // {0x00, 0x34, 0x1c};
 
@@ -46,8 +46,8 @@ void setup_big_dfile() {
     big_dfile[0] = 0x76; // Initial hardware HALT
     
     for (line = 0; line < BUFFER_LINES + 2; line++) {
-        unsigned char *row = &big_dfile[1 + (line * ROW_BYTES)];
-        memset(row, 0x00, WIDTH);   // Fill row characters with spaces
+        uchar *row = &big_dfile[1 + (line * ROW_BYTES)];
+        // memset(row, 0x00, WIDTH);   // Fill row characters with spaces
         row[WIDTH] = 0x76;          // Terminate line with hardware HALT
     }
 }
@@ -57,7 +57,8 @@ uchar **DFILE = (uchar **)0x400C;
 int main() {
     int x;
     unsigned int sum;
-    unsigned char *tmp;
+    uchar *tmp;
+    uchar *original_dfile = *DFILE;
     
     // We track everything relative to our current scrolling viewport index (0 to 23)
     int viewport_line = 1;                 
@@ -72,12 +73,12 @@ int main() {
 
         // Calculate the bottom row relative to our moving viewport (23 rows down)
         int bottom_line_idx = viewport_line + (HEIGHT - 1);
-        unsigned char *screen_bottom = &big_dfile[1 + (bottom_line_idx * ROW_BYTES)];
+        uchar *screen_bottom = &big_dfile[1 + (bottom_line_idx * ROW_BYTES)];
 
-        unsigned char *pr1 = screen_bottom, *pr2 = &big_dfile[1 + ((bottom_line_idx - HEIGHT - 1) * ROW_BYTES)];
+        uchar *pr1 = screen_bottom, *pr2 = &big_dfile[1 + ((bottom_line_idx - HEIGHT - 1) * ROW_BYTES)];
 
         for (x = 0; x < WIDTH; x++) {
-            unsigned char glyph = char_map[src[x]];                
+            uchar glyph = char_map[src[x]];                
             *pr1++ = glyph;
             *pr2++ = glyph;
         }
@@ -108,8 +109,8 @@ int main() {
         }
     }
 
-    // Restore the pointer to the absolute top before exiting to protect OS stability
-    *DFILE = big_dfile; 
+    memmove(original_dfile, *DFILE, HEIGHT * ROW_BYTES);
+    *DFILE = original_dfile; 
 
     return 0;
 }
