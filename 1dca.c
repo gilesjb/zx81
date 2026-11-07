@@ -19,8 +19,8 @@ zcc +zx81 -create-app -o build/1dca.bin "$0"; exit
 uchar big_dfile[1 + ((BUFFER_LINES + 2) * ROW_BYTES)];
 
 // State buffers for cellular tracking
-uchar buffer1[WIDTH];
-uchar buffer2[WIDTH];
+uchar buffer1[WIDTH + 2];
+uchar buffer2[WIDTH + 2];
 uchar *src = buffer1;
 uchar *dst = buffer2;
 
@@ -75,7 +75,7 @@ int main() {
 
         uchar *pr1 = screen_top + 1 + ROW_BYTES * (HEIGHT - 1), 
             *pr2 = screen_top + 1 - ROW_BYTES * 2,
-            *pg = src;
+            *pg = src + 1;
 
         for (uchar x = 0; x < WIDTH; x++) {
             uchar glyph = char_map[*pg++];                
@@ -85,15 +85,15 @@ int main() {
 
         *DFILE = screen_top;
 
+        uchar *ps = src;
         // 3. Calculate the NEXT generation
-        for (x = 0; x < WIDTH; x++) {
-            uchar left  = (x == 0) ? src[WIDTH - 1] : src[x - 1];
-            uchar mid   = src[x];
-            uchar right = (x == WIDTH - 1) ? src[0] : src[x + 1];
-
-            uchar sum = left + mid + right;
+        for (x = 1; x <= WIDTH; x++) {
+            uchar sum = *ps + *(ps + 1) + *(ps + 2);
+            ++ps;
             dst[x] = rule[sum];
         }
+        dst[0] = dst[WIDTH];
+        dst[WIDTH + 1] = dst[1];
 
         // Pointer swap for cellular buffer
         tmp = src; src = dst; dst = tmp;
