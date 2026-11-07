@@ -18,6 +18,10 @@ zcc +zx81 -create-app -o build/1dca.bin "$0"; exit
 #define BUFFER_LINES 48
 uchar big_dfile[1 + ((BUFFER_LINES + 2) * ROW_BYTES)];
 
+#define CHAR0 0x00
+#define CHAR1 0x08
+#define CHAR2 0x80
+
 // State buffers for cellular tracking
 uchar buffer1[WIDTH + 2];
 uchar buffer2[WIDTH + 2];
@@ -30,7 +34,7 @@ const uchar rule[] =
     {0, 0, 1, 2, 0, 2, 2}; // Wolfram 2007 rule
 
 const uchar char_map[] = 
-    {0x00, 0x08, 0x80};
+    {CHAR0, CHAR1, CHAR2};
     // {0x00, 0x34, 0x1c};
 
 void init_automata() {
@@ -78,19 +82,22 @@ int main() {
             *pg = src + 1;
 
         for (uchar x = 0; x < WIDTH; x++) {
-            uchar glyph = char_map[*pg++];                
+            uchar code = *pg++;
+            uchar glyph = char_map[code];                
             *pr1++ = glyph;
             *pr2++ = glyph;
         }
 
         *DFILE = screen_top;
 
-        uchar *ps = src;
+        uchar *ps = src, *pd = dst + 1;
+        uchar sum = *ps + *(ps + 1) + *(ps + 2);
         // 3. Calculate the NEXT generation
-        for (x = 1; x <= WIDTH; x++) {
-            uchar sum = *ps + *(ps + 1) + *(ps + 2);
+        for (x = 0; x < WIDTH; x++) {
+            *pd++ = rule[sum];
+            sum -= *ps;
+            sum += *(ps + 3);
             ++ps;
-            dst[x] = rule[sum];
         }
         dst[0] = dst[WIDTH];
         dst[WIDTH + 1] = dst[1];
@@ -98,13 +105,10 @@ int main() {
         // Pointer swap for cellular buffer
         tmp = src; src = dst; dst = tmp;
 
-        // 4. Progress scrolling mechanics
-        viewport_line++;
-
         // When the viewport completes its pass through the first 24 lines, 
         // it instantly jumps back to 0. Because of our dual-writing mirror above,
         // row 0-22 already contain the preceding partial page history perfectly intact!
-        if (viewport_line > HEIGHT + 1) {
+        if (++viewport_line > HEIGHT + 1) {
             viewport_line = 1;
         }
     }
