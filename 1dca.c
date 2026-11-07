@@ -87,11 +87,11 @@ int main() {
 
         // 3. Calculate the NEXT generation
         for (x = 0; x < WIDTH; x++) {
-            int left  = (x == 0) ? src[WIDTH - 1] : src[x - 1];
-            int mid   = src[x];
-            int right = (x == WIDTH - 1) ? src[0] : src[x + 1];
+            uchar left  = (x == 0) ? src[WIDTH - 1] : src[x - 1];
+            uchar mid   = src[x];
+            uchar right = (x == WIDTH - 1) ? src[0] : src[x + 1];
 
-            sum = left + mid + right;
+            uchar sum = left + mid + right;
             dst[x] = rule[sum];
         }
 
