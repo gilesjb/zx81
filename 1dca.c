@@ -71,19 +71,19 @@ int main() {
             break; 
         }
 
-        // Calculate the bottom row relative to our moving viewport (23 rows down)
-        int bottom_line_idx = viewport_line + (HEIGHT - 1);
-        uchar *screen_bottom = &big_dfile[1 + (bottom_line_idx * ROW_BYTES)];
+        uchar *screen_top = &big_dfile[viewport_line * ROW_BYTES];
 
-        uchar *pr1 = screen_bottom, *pr2 = &big_dfile[1 + ((bottom_line_idx - HEIGHT - 1) * ROW_BYTES)];
+        uchar *pr1 = screen_top + 1 + ROW_BYTES * (HEIGHT - 1), 
+            *pr2 = screen_top + 1 - ROW_BYTES * 2,
+            *pg = src;
 
-        for (x = 0; x < WIDTH; x++) {
-            uchar glyph = char_map[src[x]];                
+        for (uchar x = 0; x < WIDTH; x++) {
+            uchar glyph = char_map[*pg++];                
             *pr1++ = glyph;
             *pr2++ = glyph;
         }
 
-        *DFILE = &big_dfile[viewport_line * ROW_BYTES];
+        *DFILE = screen_top;
 
         // 3. Calculate the NEXT generation
         for (x = 0; x < WIDTH; x++) {
